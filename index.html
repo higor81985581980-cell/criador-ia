@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#171126">
+  <title>Criador IA</title>
+  <link rel="manifest" href="/manifest.json">
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#100d18;color:#f7f2ff;font:16px system-ui,Arial}
+    main{max-width:760px;margin:auto;padding:24px 16px 48px}
+    header{padding:22px 0 18px}h1{margin:0;font-size:32px;letter-spacing:.3px}
+    header p{margin:6px 0;color:#bdb2ce}.tag{color:#c7a6ff;font-weight:700;font-size:13px}
+    .panel{background:#1c1728;border:1px solid #342943;border-radius:18px;padding:18px;margin:14px 0}
+    label{display:block;margin:14px 0 7px;font-weight:650}
+    select,textarea,input{width:100%;border:1px solid #49395c;border-radius:12px;background:#100d18;color:#fff;padding:13px;font:inherit}
+    textarea{min-height:115px;resize:vertical}
+    button{border:0;border-radius:12px;padding:13px 18px;background:#9b63ed;color:white;font-weight:750;font-size:16px;width:100%;margin-top:16px}
+    button:disabled{opacity:.6}#result{white-space:pre-wrap;line-height:1.55;min-height:80px}
+    .muted{color:#bdb2ce;font-size:13px}.error{color:#ffaaa9}
+  </style>
+</head>
+<body>
+<main>
+  <header><div class="tag">SEU ESTÚDIO DE CONTEÚDO</div><h1>✨ CRIADOR IA</h1><p>Crie. Publique. Cresça.</p></header>
+  <section class="panel">
+    <label for="kind">O que você quer criar?</label>
+    <select id="kind">
+      <option value="Frase de reflexão">Frase de reflexão</option>
+      <option value="Legenda para redes sociais">Legenda para redes sociais</option>
+      <option value="Roteiro curto para vídeo">Roteiro curto para vídeo</option>
+      <option value="Conteúdo de vendas">Conteúdo de vendas</option>
+      <option value="Ideias de conteúdo">Ideias de conteúdo</option>
+      <option value="Prompt para gerar imagem">Prompt para gerar imagem</option>
+    </select>
+    <label for="topic">Qual é o tema?</label>
+    <textarea id="topic" placeholder="Ex.: superação, fé, amor de mãe, divulgação de perfume..."></textarea>
+    <label for="tone">Estilo</label>
+    <select id="tone">
+      <option>Forte e impactante</option><option>Emocionante</option><option>Motivacional</option>
+      <option> cristão e acolhedor</option><option>Profissional e persuasivo</option><option>Simples e direto</option>
+    </select>
+    <button id="go">Criar conteúdo</button>
+    <p class="muted">A geração real usa a API configurada no servidor. O uso da API pode gerar cobrança separada.</p>
+  </section>
+  <section class="panel"><h2>Seu conteúdo</h2><div id="result">Seu resultado aparecerá aqui.</div><button id="copy" type="button">Copiar resultado</button></section>
+</main>
+<script>
+const go=document.querySelector('#go'), result=document.querySelector('#result');
+go.addEventListener('click',async()=>{
+  const topic=document.querySelector('#topic').value.trim();
+  if(!topic){result.textContent='Digite um tema para começar.';return;}
+  go.disabled=true;go.textContent='Criando...';result.textContent='A inteligência artificial está preparando seu conteúdo...';
+  try{
+    const r=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      kind:document.querySelector('#kind').value,topic,tone:document.querySelector('#tone').value
+    })});
+    const data=await r.json();
+    if(!r.ok) throw new Error(data.error||'Não foi possível gerar agora.');
+    result.textContent=data.text||'A resposta veio vazia. Tente novamente.';
+  }catch(e){result.textContent='Não consegui gerar agora: '+e.message;result.className='error';}
+  finally{go.disabled=false;go.textContent='Criar conteúdo';}
+});
+document.querySelector('#copy').addEventListener('click',async()=>{
+  try{await navigator.clipboard.writeText(result.textContent);document.querySelector('#copy').textContent='Copiado!';}
+  catch{document.querySelector('#copy').textContent='Selecione e copie o texto';}
+});
+if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+</script>
+</body></html>
