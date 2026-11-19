@@ -9,7 +9,7 @@ const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json({ limit: "20kb" }));
-app.use(express.static(path.join(__dirname, "public")));
+app.get("/", (_req, res) => res.sendFile(path.join(__dirname, "index.html")));
 
 const limiter = rateLimit({ windowMs: 60 * 1000, limit: 10, standardHeaders: true, legacyHeaders: false });
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
